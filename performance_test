@@ -3,10 +3,10 @@ import os
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
-# 1. AES IMPLEMENTATION (FROM YOUR CODE)
-
 key = b'1234567890123456'
+seed = "10110101"
 
+# AES functions
 def encrypt_aes(message_bytes):
     cipher = AES.new(key, AES.MODE_ECB)
     return cipher.encrypt(pad(message_bytes, AES.block_size))
@@ -15,87 +15,103 @@ def decrypt_aes(ciphertext):
     cipher = AES.new(key, AES.MODE_ECB)
     return unpad(cipher.decrypt(ciphertext), AES.block_size)
 
-# 2. LFSR IMPLEMENTATION (FROM YOUR CODE)
 
+# LFSR functions
 def lfsr(seed, length):
     state = [int(bit) for bit in seed]
     keystream = []
+
     for _ in range(length):
         output = state[-1]
         keystream.append(output)
+
         feedback = state[0] ^ state[2]
         state = [feedback] + state[:-1]
+
     return keystream
+
 
 def text_to_bits(text):
     bits = []
+
     for char in text:
         binary = format(ord(char), '08b')
+
         for bit in binary:
             bits.append(int(bit))
+
     return bits
+
 
 def bits_to_text(bits):
     text = ""
+
     for i in range(0, len(bits), 8):
-        byte = bits[i:i+8]
+        byte = bits[i:i + 8]
         binary = ''.join(str(bit) for bit in byte)
         text += chr(int(binary, 2))
+
     return text
+
 
 def encrypt_lfsr(plaintext, seed):
     plaintext_bits = text_to_bits(plaintext)
     keystream = lfsr(seed, len(plaintext_bits))
+
     ciphertext_bits = []
+
     for p, k in zip(plaintext_bits, keystream):
         ciphertext_bits.append(p ^ k)
+
     return ciphertext_bits
+
 
 def decrypt_lfsr(ciphertext_bits, seed):
     keystream = lfsr(seed, len(ciphertext_bits))
+
     plaintext_bits = []
+
     for c, k in zip(ciphertext_bits, keystream):
         plaintext_bits.append(c ^ k)
+
     return bits_to_text(plaintext_bits)
 
-# 3. BENCHMARK EXECUTION SCRIPT
 
 files = ["test_1KB.txt", "test_100KB.txt", "test_1MB.txt"]
 
-print("=== MEMULAKAN UJIAN PRESTASI ===\n")
+print("Performance Test Results\n")
 
 for file_name in files:
+
     if not os.path.exists(file_name):
-        print(f"Fail {file_name} tidak dijumpai! Sila run generate_files.py dulu.")
+        print(f"{file_name} not found.")
         continue
-        
-    with open(file_name, 'rb') as f:
-        raw_data = f.read()
-    
-    lfsr_string = raw_data.decode('utf-8', errors='ignore')
-    
-    print(f"--- Menguji Saiz Fail: {file_name} ---")
-    
-    # --- AES Testing ---
+
+    with open(file_name, 'rb') as file:
+        raw_data = file.read()
+
+    lfsr_text = raw_data.decode('utf-8', errors='ignore')
+
+    print(f"Testing {file_name}")
+
     start = time.perf_counter()
     aes_cipher = encrypt_aes(raw_data)
     aes_enc_time = time.perf_counter() - start
-    
+
     start = time.perf_counter()
     decrypt_aes(aes_cipher)
     aes_dec_time = time.perf_counter() - start
-    
-    print(f"AES Encryption: {aes_enc_time:.6f} saat")
-    print(f"AES Decryption: {aes_dec_time:.6f} saat")
-    
-    # --- LFSR Testing ---
+
+    print(f"AES Encryption : {aes_enc_time:.6f} seconds")
+    print(f"AES Decryption : {aes_dec_time:.6f} seconds")
+
     start = time.perf_counter()
-    lfsr_cipher = encrypt_lfsr(lfsr_string, seed)
+    lfsr_cipher = encrypt_lfsr(lfsr_text, seed)
     lfsr_enc_time = time.perf_counter() - start
-    
+
     start = time.perf_counter()
     decrypt_lfsr(lfsr_cipher, seed)
     lfsr_dec_time = time.perf_counter() - start
-    
-    print(f"LFSR Encryption: {lfsr_enc_time:.6f} saat")
-    print(f"LFSR Decryption: {lfsr_dec_time:.6f} saat\n")
+
+    print(f"LFSR Encryption: {lfsr_enc_time:.6f} seconds")
+    print(f"LFSR Decryption: {lfsr_dec_time:.6f} seconds\n")
