@@ -3,9 +3,8 @@ import os
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
-# =====================================================================
 # 1. AES IMPLEMENTATION (FROM YOUR CODE)
-# =====================================================================
+
 key = b'1234567890123456'
 
 def encrypt_aes(message_bytes):
@@ -16,9 +15,8 @@ def decrypt_aes(ciphertext):
     cipher = AES.new(key, AES.MODE_ECB)
     return unpad(cipher.decrypt(ciphertext), AES.block_size)
 
-# =====================================================================
 # 2. LFSR IMPLEMENTATION (FROM YOUR CODE)
-# =====================================================================
+
 def lfsr(seed, length):
     state = [int(bit) for bit in seed]
     keystream = []
@@ -60,10 +58,8 @@ def decrypt_lfsr(ciphertext_bits, seed):
         plaintext_bits.append(c ^ k)
     return bits_to_text(plaintext_bits)
 
-# =====================================================================
 # 3. BENCHMARK EXECUTION SCRIPT
-# =====================================================================
-seed = "10110101"
+
 files = ["test_1KB.txt", "test_100KB.txt", "test_1MB.txt"]
 
 print("=== MEMULAKAN UJIAN PRESTASI ===\n")
@@ -76,7 +72,6 @@ for file_name in files:
     with open(file_name, 'rb') as f:
         raw_data = f.read()
     
-    # Tukar data byte fail kepada string teks biasa untuk input fungsi LFSR korang
     lfsr_string = raw_data.decode('utf-8', errors='ignore')
     
     print(f"--- Menguji Saiz Fail: {file_name} ---")
